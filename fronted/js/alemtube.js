@@ -16,9 +16,9 @@ searchInput.addEventListener("keydown", (e) => {
 });
 console.log("✅ שדה חיפוש מחובר");
 
-// חיפוש סרטונים דרך ה-Backend שלך
+// חיפוש סרטונים דרך ה-Backend
 async function searchVideos() {
-  const query = document.getElementById("searchInput").value.trim();
+  const query = searchInput.value.trim();
   if (!query) return;
 
   playlist = [];
@@ -26,12 +26,26 @@ async function searchVideos() {
   document.getElementById("results").innerHTML = "";
   document.getElementById("player-container").innerHTML = "";
 
+  // אם זה לינק ל-YouTube
+  const isURL = query.includes("youtube.com") || query.includes("youtu.be");
+  if (isURL) {
+    const match = query.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+    if (match) {
+      playlist = [{ videoId: match[1], title: "סרטון שהוזן", thumb: "" }];
+      currentIndex = 0;
+      saveToCache();
+      playVideo(currentIndex);
+    }
+    return;
+  }
+
+  // חיפוש דרך backend
   try {
     const res = await fetch(`https://alemtube-v.onrender.com/search?q=${encodeURIComponent(query)}`);
     const data = await res.json();
+    playlist = data || [];
 
-    playlist = data; // [{videoId, title, thumb}, ...]
-    if (playlist.length === 0) return alert("לא נמצאו סרטונים");
+    if (!playlist.length) return alert("לא נמצאו סרטונים");
 
     currentIndex = 0;
     saveToCache();
@@ -41,14 +55,18 @@ async function searchVideos() {
   }
 }
 
-
 // ניגון סרטון
 function playVideo(index) {
   const video = playlist[index];
   if (!video) return;
 
   const playerContainer = document.getElementById("player-container");
-  playerContainer.innerHTML = `<iframe id="ytplayer" src="https://www.youtube-nocookie.com/embed/${video.videoId}?autoplay=1&rel=0&modestbranding=1" allowfullscreen allow="autoplay"></iframe>`;
+  playerContainer.innerHTML = `
+    <iframe id="ytplayer" 
+      src="https://www.youtube-nocookie.com/embed/${video.videoId}?autoplay=1&rel=0&modestbranding=1" 
+      allowfullscreen allow="autoplay">
+    </iframe>
+  `;
 
   setTimeout(() => playerContainer.scrollIntoView({ behavior: "smooth" }), 500);
 
@@ -56,9 +74,9 @@ function playVideo(index) {
   resultsDiv.innerHTML = "";
 
   playlist.forEach((v, i) => {
-    if (i === index) return;
     const div = document.createElement("div");
     div.className = "video-item";
+    if (i === index) div.style.border = "2px solid #cc0000"; // מסגרת אדומה לסרטון שמנוגן
     div.onclick = () => {
       currentIndex = i;
       saveToCache();
@@ -67,6 +85,8 @@ function playVideo(index) {
     div.innerHTML = `<img src="${v.thumb}" alt="${v.title}"><div class="video-title">${v.title}</div>`;
     resultsDiv.appendChild(div);
   });
+
+  setTimeout(setupPlayerEvents, 1000);
 }
 
 // שמירת וניגון מה-cache
@@ -135,3 +155,24 @@ function launchFireworks(count = 5) {
     }
   }
 }
+
+// YT Player Events
+function setupPlayerEvents() {
+  if (typeof YT === "undefined" || !YT.Player) return;
+  new YT.Player("ytplayer", {
+    events: {
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.ENDED && currentIndex + 1 < playlist.length) {
+          currentIndex++;
+          saveToCache();
+          playVideo(currentIndex);
+        }
+      },
+    },
+  });
+}
+
+// Load YouTube API
+const tag = document.createElement("script");
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
