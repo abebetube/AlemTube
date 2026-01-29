@@ -18,10 +18,8 @@ console.log("✅ שדה חיפוש מחובר");
 
 // חיפוש סרטונים דרך ה-Backend שלך
 async function searchVideos() {
-  const query = searchInput.value.trim();
+  const query = document.getElementById("searchInput").value.trim();
   if (!query) return;
-
-  console.log("🔍 מחפש:", query);
 
   playlist = [];
   currentIndex = 0;
@@ -29,26 +27,20 @@ async function searchVideos() {
   document.getElementById("player-container").innerHTML = "";
 
   try {
-    // כאן תשים את הכתובת של ה-backend שלך
     const res = await fetch(`https://alemtube.onrender.com/search?q=${encodeURIComponent(query)}`);
-const data = await res.json();
+    const data = await res.json();
 
+    playlist = data; // [{videoId, title, thumb}, ...]
+    if (playlist.length === 0) return alert("לא נמצאו סרטונים");
 
-    if (!data || data.length === 0) {
-      alert("לא נמצאו סרטונים ניתנים לניגון");
-      return;
-    }
-
-    playlist = data;
     currentIndex = 0;
     saveToCache();
     playVideo(currentIndex);
-
   } catch (err) {
     console.error("שגיאת חיפוש:", err);
-    alert("אירעה שגיאה בחיפוש. בדוק שה-backend פועל.");
   }
 }
+
 
 // ניגון סרטון
 function playVideo(index) {
