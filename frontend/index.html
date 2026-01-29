@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>AbeTube</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>AbeTube - נגן יוטיוב</header>
+
+  <div class="container">
+    <div class="search-box">
+      <input id="searchInput" type="text" placeholder="הקלד מילת חיפוש או קישור ל-YouTube" />
+      <button onclick="searchVideos()">חפש</button>
+    </div>
+
+    <div id="player-container"></div>
+    <div id="results"></div>
+  </div>
+
+  <button id="fullscreen-btn" onclick="toggleFullScreen()">מעבר למסך מלא</button>
+
+  <div id="splash">
+    <div class="fireworks"></div>
+    <div class="logo-area">
+      <img src="logo.png" alt="logo" />
+      <h1 class="title">AbeTube</h1>
+    </div>
+  </div>
+
+  <script src="js/alemtube.js"></script>
+</body>
+</html>
