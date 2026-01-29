@@ -20,7 +20,6 @@ async function searchVideos() {
   document.getElementById("player-container").innerHTML = "";
 
   try {
-    // כאן אנחנו קוראים ל-backend במקום ל-YouTube ישירות
     const res = await fetch(`${BACKEND_URL}/search?q=${encodeURIComponent(query)}`);
     const data = await res.json();
 
@@ -65,4 +64,59 @@ function saveToCache() {
 function loadFromCache() {
   const list = localStorage.getItem("abe_playlist");
   const idx = localStorage.getItem("abe_index");
-  if (list && idx !==
+  if (list && idx !== null) {
+    playlist = JSON.parse(list);
+    currentIndex = parseInt(idx);
+    playVideo(currentIndex);
+  }
+}
+
+// YouTube Iframe API
+const tag = document.createElement("script");
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+
+// Fullscreen toggle
+function toggleFullScreen() {
+  const btn = document.getElementById("fullscreen-btn");
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+    btn.textContent = "יציאה ממסך מלא";
+  } else {
+    document.exitFullscreen();
+    btn.textContent = "מעבר למסך מלא";
+  }
+}
+
+// Splash fireworks
+function launchFireworks(count = 5) {
+  const container = document.querySelector('.fireworks');
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+    for (let j = 0; j < 30; j++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      const angle = (Math.PI * 2 * j) / 30;
+      const distance = 80 + Math.random() * 50;
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance;
+      particle.style.setProperty('--x', `${dx}px`);
+      particle.style.setProperty('--y', `${dy}px`);
+      particle.style.left = `${x}px`;
+      particle.style.top = `${y}px`;
+      particle.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
+      container.appendChild(particle);
+      setTimeout(() => particle.remove(), 1500);
+    }
+  }
+}
+
+window.addEventListener("load", () => {
+  let count = 0;
+  const interval = setInterval(() => {
+    launchFireworks();
+    count++;
+    if (count >= 4) clearInterval(interval);
+  }, 700);
+});
