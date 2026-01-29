@@ -1,0 +1,23 @@
+body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; margin:0; padding:0; direction: rtl;}
+header { background: #cc0000; color: white; text-align:center; padding:1rem; font-size:1.5rem; font-weight:bold;}
+.container { max-width:900px; margin:auto; padding:1rem;}
+.search-box { display:flex; gap:0.5rem; margin-bottom:1.5rem;}
+.search-box input { flex:1; padding:0.7rem; border:1px solid #ccc; border-radius:8px; font-size:1rem;}
+.search-box button { padding:0.7rem 1rem; background:#cc0000; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;}
+#player-container { margin-bottom:2rem; display:flex; justify-content:center;}
+#player-container iframe { width:100%; max-width:100%; aspect-ratio:16/9; border:none; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+#results { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem;}
+.video-item { background:white; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); overflow:hidden; cursor:pointer; transition: transform 0.2s; display:flex; flex-direction:column;}
+.video-item:hover { transform:translateY(-5px);}
+.video-item img { width:100%; height:auto; object-fit:cover;}
+.video-title { padding:0.6rem; font-size:0.95rem; font-weight:bold; color:#333;}
+#fullscreen-btn { position:fixed; bottom:20px; left:20px; z-index:10; padding:0.7rem 1rem; background:#333; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.9rem;}
+.ad, .ads, .advertisement { display:none !important; }
+#splash { position:fixed; inset:0; background:#000; display:flex; align-items:center; justify-content:center; z-index:9999; overflow:hidden;}
+.fireworks-container { position:relative; width:100px; height:100px;}
+.particle { position:absolute; width:8px; height:8px; border-radius:50%; animation:explode 1s ease-out forwards;}
+@keyframes explode { 0% { opacity:1; transform: translate(-50%,-50%) rotate(0deg) translateY(0);} 100% { opacity:0; transform: translate(-50%,-50%) rotate(360deg) translateY(-120px);}}
+.logo-area { text-align:center;}
+.logo-area img { width:100px;}
+.logo-area .title { font-size:2rem; color:#cc0000;}
+@media (max-width:600px) { .search-box { flex-direction:column; } #fullscreen-btn { left:50%; transform:translateX(-50%); } }
