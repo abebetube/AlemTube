@@ -12,7 +12,7 @@ app.use(cors());
 app.get("/", (req, res) => {
   res.send("✅ Alemtube backend is running");
 });
-
+console.log("API KEY:", process.env.YOUTUBE_API_KEY);
 app.get("/search", async (req, res) => {
   const query = req.query.q;
   console.log("🔍 Search query:", query);
@@ -56,7 +56,7 @@ app.get("/search", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-console.log("API KEY:", process.env.YOUTUBE_API_KEY);
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () =>
