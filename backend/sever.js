@@ -16,20 +16,20 @@ app.get("/search", async (req, res) => {
   try {
     const ytRes = await fetch(url);
     const data = await ytRes.json();
-
     if (data.error) return res.status(500).json(data.error);
 
-    const videos = data.items.map(item=>({
+    const videos = data.items.map(item => ({
       videoId: item.id.videoId,
       title: item.snippet.title,
       thumb: item.snippet.thumbnails.medium.url
     }));
+
     res.json(videos);
-  } catch(err) {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, ()=>console.log("🚀 AlemTube backend running on port", port));
+app.listen(port, () => console.log("Backend running on port", port));
