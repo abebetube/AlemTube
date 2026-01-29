@@ -27,7 +27,7 @@ async function searchVideos() {
   document.getElementById("player-container").innerHTML = "";
 
   try {
-    const res = await fetch(`https://alemtube.onrender.com/search?q=${encodeURIComponent(query)}`);
+    const res = await fetch(`https://alemtube-v.onrender.com/search?q=${encodeURIComponent(query)}`);
     const data = await res.json();
 
     playlist = data; // [{videoId, title, thumb}, ...]
