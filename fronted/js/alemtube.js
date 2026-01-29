@@ -30,7 +30,7 @@ async function searchVideos() {
 
   try {
     // כאן תשים את הכתובת של ה-backend שלך
-    const res = await fetch(`https://YOUR-BACKEND-DOMAIN/search?q=${encodeURIComponent(query)}`);
+    const res = await fetch(`https://alemtube.onrender.com/search?q=${encodeURIComponent(query)}`);
 const data = await res.json();
 
 
