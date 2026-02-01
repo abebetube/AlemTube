@@ -4,6 +4,7 @@ window.addEventListener("load", () => {
       }, 4000);
     });
 
+    
     let playlist = [];
     let currentIndex = 0;
 
@@ -38,23 +39,19 @@ window.addEventListener("load", () => {
         return;
       }
 
-      const url = `https://alemtube-v.onrender.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
-        query)}&type=video&key=${API_KEY}&maxResults=30`;
+      const url = `/search?q=${encodeURIComponent(query)}`;
+
 
       try {
         const res = await fetch(url);
         const data = await res.json();
 
-        for (const item of data.items) {
-          const vid = item.id.videoId;
-          if (await checkEmbeddable(vid)) {
-            playlist.push({
-              videoId: vid,
-              title: item.snippet.title,
-              thumb: item.snippet.thumbnails.medium.url,
-            });
-          }
-        }
+        for (const item of data) {
+  if (await checkEmbeddable(item.videoId)) {
+    playlist.push(item);
+  }
+}
+
 
         if (playlist.length === 0) return alert("לא נמצאו סרטונים ניתנים לניגון");
 
@@ -96,7 +93,7 @@ window.addEventListener("load", () => {
       setTimeout(() => setupPlayerEvents(), 1000);
     }
 
-  
+   
     function setupPlayerEvents() {
       if (typeof YT === "ad" || typeof YT.Player === "undefined" || typeof YT === "ממומן" || typeof YT === "Ad show") return;
       new YT.Player("ytplayer", {
@@ -112,7 +109,7 @@ window.addEventListener("load", () => {
       });
     }
 
-    async function checkEmbeddable(id) {
+    /*async function checkEmbeddable(id) {
       const url = `https://www.googleapis.com/youtube/v3/videos?part=status&id=${id}&key=${API_KEY}`;
       try {
         const res = await fetch(url);
@@ -121,7 +118,7 @@ window.addEventListener("load", () => {
       } catch {
         return false;
       }
-    }
+    }*/
 
       document.addEventListener('DOMContentLoaded', () => {
     // למשל, לחסום אלמנטים עם class מסוים של פרסומות
