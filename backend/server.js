@@ -58,6 +58,40 @@ app.get("/search", async (req, res) => {
   });
 });
 
+// אנדפוינט חדש לבדיקה אם סרטון ניתן להטמעה
+app.get("/videos", async (req, res) => {
+  const id = req.query.id;
+  if (!id) return res.status(400).json({ error: "Missing video id" });
+
+  let lastError = null;
+
+  for (let i = 0; i < API_KEYS.length; i++) {
+    const key = getNextKey();
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=status&id=${id}&key=${key}`;
+
+    try {
+      const ytRes = await fetch(url);
+      const data = await ytRes.json();
+
+      if (data.error) {
+        lastError = data.error;
+        continue;
+      }
+
+      const embeddable = data.items?.[0]?.status?.embeddable ?? false;
+      return res.json({ videoId: id, embeddable });
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  res.status(500).json({
+    error: "All API keys exhausted",
+    details: lastError
+  });
+});
+
+
 const port = process.env.PORT || 3000;
 app.listen(port, () =>
   console.log("Backend running on port", port)
