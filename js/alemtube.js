@@ -17,7 +17,7 @@ document.getElementById("searchInput").addEventListener("keydown", (e) => {
 });
 
 
-async function checkEmbeddable(id) {
+/*async function checkEmbeddable(id) {
   try {
     const res = await fetch(`https://alemtube-v.onrender.com/videos?id=${id}`);
     if (!res.ok) throw new Error("Server error " + res.status);
@@ -72,9 +72,9 @@ async function searchVideos() {
   } catch (e) {
     console.error("שגיאת חיפוש:", e);
   }
-}
+}*/
 
-/*async function searchVideos() {
+async function searchVideos() {
   const query = document.getElementById("searchInput").value.trim();
   if (!query) return;
 
@@ -116,7 +116,7 @@ async function searchVideos() {
   } catch (e) {
     console.error("שגיאת חיפוש:", e);
   }
-}*/
+}
 
 function playVideo(index) {
   const video = playlist[index];
