@@ -30,12 +30,13 @@ window.addEventListener("load", () => {
       if (isURL) {
         const match = query.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
         const videoId = match ? match[1] : "";
-        if (videoId && await checkEmbeddable(videoId)) {
-          playlist = [{ videoId, title: "סרטון שהוזן", thumb: "" }];
-          currentIndex = 0;
-          saveToCache();
-          playVideo(currentIndex);
-        }
+        if (videoId) {
+  playlist = [{ videoId, title: "סרטון שהוזן", thumb: "" }];
+  currentIndex = 0;
+  saveToCache();
+  playVideo(currentIndex);
+}
+
         return;
       }
 
@@ -46,11 +47,10 @@ window.addEventListener("load", () => {
         const res = await fetch(url);
         const data = await res.json();
 
-        for (const item of data) {
-  if (await checkEmbeddable(item.videoId)) {
-    playlist.push(item);
-  }
+      for (const item of data) {
+  playlist.push(item);
 }
+
 
 
         if (playlist.length === 0) return alert("לא נמצאו סרטונים ניתנים לניגון");
