@@ -4,7 +4,7 @@ window.addEventListener("load", () => {
       }, 4000);
     });
 
-    
+    const API_KEY = "AIzaSyCKWg2Po9gpQTx2-SSadDOouTB04jBFAAU";
     let playlist = [];
     let currentIndex = 0;
 
@@ -211,4 +211,3 @@ window.addEventListener("load", () => {
     splash.style.display = "none";
   }, 4000);
 });
-  
