@@ -1,64 +1,187 @@
-import express from "express";
-import fetch from "node-fetch";
-import cors from "cors";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const app = express();
-app.use(cors());
-
-// ⬅️ כאן אנחנו טוענים את כל המפתחות
-const API_KEYS = process.env.YOUTUBE_API_KEYS.split(",");
-let keyIndex = 0;
-
-function getNextKey() {
-  const key = API_KEYS[keyIndex];
-  keyIndex = (keyIndex + 1) % API_KEYS.length;
-  return key;
-}
-
-app.get("/search", async (req, res) => {
-  const query = req.query.q;
-  if (!query) return res.status(400).json({ error: "Missing query" });
-
-  let lastError = null;
-
-  // 🔁 ננסה כל מפתח בתורו
-  for (let i = 0; i < API_KEYS.length; i++) {
-    const key = getNextKey();
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=30&q=${encodeURIComponent(query)}&key=${key}`;
-
-    try {
-      const ytRes = await fetch(url);
-      const data = await ytRes.json();
-
-      if (data.error) {
-        console.warn("⛔ מפתח נכשל:", key, data.error.reason);
-        lastError = data.error;
-        continue; // מנסה מפתח הבא
-      }
-
-      const videos = data.items.map(item => ({
-        videoId: item.id.videoId,
-        title: item.snippet.title,
-        thumb: item.snippet.thumbnails.medium.url
-      }));
-
-      return res.json(videos); // ✅ הצליח
-    } catch (err) {
-      lastError = err;
-    }
-  }
-
-  // ❌ אם כולם נכשלו
-  res.status(500).json({
-    error: "All API keys exhausted",
-    details: lastError
-  });
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    document.getElementById("splash").style.display = "none";
+  }, 4000);
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () =>
-  console.log("Backend running on port", port)
-);
+let playlist = [];
+let currentIndex = 0;
+
+window.onload = () => loadFromCache();
+
+document.getElementById("searchInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    searchVideos();
+  }
+});
+
+async function searchVideos() {
+  const query = document.getElementById("searchInput").value.trim();
+  if (!query) return;
+
+  playlist = [];
+  currentIndex = 0;
+  document.getElementById("results").innerHTML = "";
+  document.getElementById("player-container").innerHTML = "";
+
+  const isURL = query.includes("youtube.com") || query.includes("youtu.be");
+  if (isURL) {
+    const match = query.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+    const videoId = match ? match[1] : "";
+    if (videoId) {
+      playlist = [{ videoId, title: "סרטון שהוזן", thumb: "" }];
+      currentIndex = 0;
+      saveToCache();
+      playVideo(currentIndex);
+    }
+    return;
+  }
+
+  // 🔹 קריאה ל-backend שלך במקום ישירות ל-YouTube
+  const url = `http://localhost:3000/search?q=${encodeURIComponent(query)}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Server fetch failed " + res.status);
+    const data = await res.json();
+
+    // כל הפריטים שהשרת מחזיר נשמרים ב-playlist
+    for (const item of data) {
+      playlist.push(item);
+    }
+
+    if (playlist.length === 0) return alert("לא נמצאו סרטונים ניתנים לניגון");
+
+    currentIndex = 0;
+    saveToCache();
+    playVideo(currentIndex);
+  } catch (e) {
+    console.error("שגיאת חיפוש:", e);
+  }
+}
+
+function playVideo(index) {
+  const video = playlist[index];
+  if (!video) return;
+
+  document.getElementById("player-container").innerHTML =
+    `<iframe id="ytplayer" src="https://www.youtube-nocookie.com/embed/${video.videoId}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1" allowfullscreen allow="autoplay"></iframe>`;
+
+  setTimeout(() => {
+    document.getElementById("player-container").scrollIntoView({ behavior: "smooth" });
+  }, 500);
+
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "";
+
+  playlist.forEach((v, i) => {
+    if (i === index) return;
+    const div = document.createElement("div");
+    div.className = "video-item";
+    div.onclick = () => {
+      currentIndex = i;
+      saveToCache();
+      playVideo(i);
+    };
+    div.innerHTML = `<img src="${v.thumb}" alt="${v.title}"><div class="video-title">${v.title}</div>`;
+    resultsDiv.appendChild(div);
+  });
+
+  setTimeout(() => setupPlayerEvents(), 1000);
+}
+
+function setupPlayerEvents() {
+  if (typeof YT === "undefined" || typeof YT.Player === "undefined") return;
+  new YT.Player("ytplayer", {
+    events: {
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.ENDED && currentIndex + 1 < playlist.length) {
+          currentIndex++;
+          saveToCache();
+          playVideo(currentIndex);
+        }
+      },
+    },
+  });
+}
+
+// ✅ פונקציות קאש וטעינה
+function saveToCache() {
+  localStorage.setItem("abe_playlist", JSON.stringify(playlist));
+  localStorage.setItem("abe_index", currentIndex);
+}
+
+function loadFromCache() {
+  const list = localStorage.getItem("abe_playlist");
+  const idx = localStorage.getItem("abe_index");
+  if (list && idx !== null) {
+    playlist = JSON.parse(list);
+    currentIndex = parseInt(idx);
+    playVideo(currentIndex);
+  }
+}
+
+// 🔹 פונקציות לחסימת פרסומות
+document.addEventListener('DOMContentLoaded', () => {
+  const ads = document.querySelectorAll('.ad, .ads, .advertisement');
+  ads.forEach(ad => ad.style.display = 'none');
+});
+
+function skipAds() {
+  const adElements = document.querySelectorAll('.ad, .advertisement, #ad-container');
+  adElements.forEach(el => el.style.display = 'none');
+  const skipButton = document.querySelector('.skip-ad, .skip-button');
+  if (skipButton) skipButton.click();
+}
+
+setInterval(skipAds, 3000);
+
+// 🔹 YouTube iframe API
+const tag = document.createElement("script");
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+
+// 🎆 Fireworks
+function launchFireworks(count = 5) {
+  const container = document.querySelector('.fireworks');
+
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+
+    for (let j = 0; j < 30; j++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+
+      const angle = (Math.PI * 2 * j) / 30;
+      const distance = 80 + Math.random() * 50;
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance;
+
+      particle.style.setProperty('--x', `${dx}px`);
+      particle.style.setProperty('--y', `${dy}px`);
+      particle.style.left = `${x}px`;
+      particle.style.top = `${y}px`;
+      particle.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
+
+      container.appendChild(particle);
+
+      setTimeout(() => particle.remove(), 1500);
+    }
+  }
+}
+
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splash");
+  let count = 0;
+  const interval = setInterval(() => {
+    launchFireworks();
+    count++;
+    if (count >= 4) clearInterval(interval);
+  }, 700);
+
+  setTimeout(() => {
+    splash.style.display = "none";
+  }, 4000);
+});
