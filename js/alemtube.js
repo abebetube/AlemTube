@@ -109,16 +109,7 @@ window.addEventListener("load", () => {
       });
     }
 
-    /*async function checkEmbeddable(id) {
-      const url = `https://www.googleapis.com/youtube/v3/videos?part=status&id=${id}&key=${API_KEY}`;
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        return data.items?.[0]?.status?.embeddable ?? false;
-      } catch {
-        return false;
-      }
-    }*/
+    
 
       document.addEventListener('DOMContentLoaded', () => {
     // למשל, לחסום אלמנטים עם class מסוים של פרסומות
