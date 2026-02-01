@@ -16,7 +16,65 @@ document.getElementById("searchInput").addEventListener("keydown", (e) => {
   }
 });
 
+
+async function checkEmbeddable(id) {
+  try {
+    const res = await fetch(`https://alemtube-v.onrender.com/videos?id=${id}`);
+    if (!res.ok) throw new Error("Server error " + res.status);
+    const data = await res.json();
+    return data.embeddable ?? false;
+  } catch {
+    return false;
+  }
+}
+
 async function searchVideos() {
+  const query = document.getElementById("searchInput").value.trim();
+  if (!query) return;
+
+  playlist = [];
+  currentIndex = 0;
+  document.getElementById("results").innerHTML = "";
+  document.getElementById("player-container").innerHTML = "";
+
+  const isURL = query.includes("youtube.com") || query.includes("youtu.be");
+  if (isURL) {
+    const match = query.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+    const videoId = match ? match[1] : "";
+    if (videoId && await checkEmbeddable(videoId)) {
+      playlist = [{ videoId, title: "סרטון שהוזן", thumb: "" }];
+      currentIndex = 0;
+      saveToCache();
+      playVideo(currentIndex);
+    }
+    return;
+  }
+
+  // 🔹 החיפוש נעשה דרך backend
+  const url = `https://alemtube-v.onrender.com/search?q=${encodeURIComponent(query)}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Server fetch failed " + res.status);
+    const data = await res.json();
+
+    for (const item of data) {
+      if (await checkEmbeddable(item.videoId)) {
+        playlist.push(item);
+      }
+    }
+
+    if (playlist.length === 0) return alert("לא נמצאו סרטונים ניתנים לניגון");
+
+    currentIndex = 0;
+    saveToCache();
+    playVideo(currentIndex);
+  } catch (e) {
+    console.error("שגיאת חיפוש:", e);
+  }
+}
+
+/*async function searchVideos() {
   const query = document.getElementById("searchInput").value.trim();
   if (!query) return;
 
@@ -58,7 +116,7 @@ async function searchVideos() {
   } catch (e) {
     console.error("שגיאת חיפוש:", e);
   }
-}
+}*/
 
 function playVideo(index) {
   const video = playlist[index];
