@@ -4,7 +4,6 @@ window.addEventListener("load", () => {
       }, 4000);
     });
 
-    const API_KEY = "AIzaSyCKWg2Po9gpQTx2-SSadDOouTB04jBFAAU";
     let playlist = [];
     let currentIndex = 0;
 
@@ -39,7 +38,7 @@ window.addEventListener("load", () => {
         return;
       }
 
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
+      const url = `https://alemtube-v.onrender.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
         query)}&type=video&key=${API_KEY}&maxResults=30`;
 
       try {
