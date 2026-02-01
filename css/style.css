@@ -45,8 +45,15 @@ header {
   cursor: pointer;
 }
 
+#player-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
 #player-container iframe {
   width: 100%;
+  max-width: 900px;
   aspect-ratio: 16 / 9;
   border-radius: 12px;
 }
@@ -88,13 +95,17 @@ header {
 }
 
 .logo-area img {
-  width: 100px;
+  width: 120px;      /* ⬅️ מגבלה חשובה */
+  height: auto;
+  margin-bottom: 1rem;
 }
 
 .logo-area .title {
   color: #cc0000;
-  font-size: 2rem;
+  font-size: 2.2rem;
+  font-weight: bold;
 }
+
 
 @media (max-width: 600px) {
   .search-box {
