@@ -6,7 +6,75 @@ body {
       direction: rtl;
     }
 
+
+   /* Splash screen - fireworks style */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.fireworks-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: hsl(calc(var(--i) * 36), 100%, 50%);
+  border-radius: 50%;
+  animation: explode 1s ease-out forwards;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(calc(var(--i) * 12deg)) translateY(0);
+}
+
+@keyframes explode {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(calc(var(--i) * 12deg)) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(calc(var(--i) * 12deg)) translateY(-120px);
+  }
+} 
+
+    .logo-area {
+      text-align: center;
+    }
+
+    .logo-area img {
+      width: 100px;
+    }
+
+    .logo-area .title {
+      font-size: 2rem;
+      color: #cc0000;
+    }
+
+    @media (max-width: 600px) {
+      .search-box {
+        flex-direction: column;
+      }
+
+      #fullscreen-btn {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+
+          
     header {
+          pa
       background-color: #cc0000;
       color: white;
       text-align: center;
@@ -103,87 +171,12 @@ body {
       color: #333;
     }
 
-    #fullscreen-btn {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 10;
-      padding: 0.7rem 1rem;
-      background-color: #333;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
+    
 
     .ad, .ads, .advertisement {
   display: none !important;
 }
 
-   /* Splash screen - fireworks style */
-#splash {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  overflow: hidden;
-}
-
-.fireworks-container {
-  position: relative;
-  width: 100px;
-  height: 100px;
-}
-
-.particle {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: hsl(calc(var(--i) * 36), 100%, 50%);
-  border-radius: 50%;
-  animation: explode 1s ease-out forwards;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(calc(var(--i) * 12deg)) translateY(0);
-}
-
-@keyframes explode {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, -50%) rotate(calc(var(--i) * 12deg)) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) rotate(calc(var(--i) * 12deg)) translateY(-120px);
-  }
-} 
-
-    .logo-area {
-      text-align: center;
-    }
-
-    .logo-area img {
-      width: 100px;
-    }
-
-    .logo-area .title {
-      font-size: 2rem;
-      color: #cc0000;
-    }
-
-    @media (max-width: 600px) {
-      .search-box {
-        flex-direction: column;
-      }
-
-      #fullscreen-btn {
-        left: 50%;
-        transform: translateX(-50%);
-      }
 
 
 /* hide youtube suggested overlay */
