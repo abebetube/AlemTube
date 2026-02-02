@@ -133,7 +133,7 @@ function playVideo(index) {
   const video = playlist[index];
   if (!video) return;
 
-  document.getElementById("player-container").innerHTML = `
+ /* document.getElementById("player-container").innerHTML = `
     <iframe
       id="ytplayer"
       src="https://www.youtube-nocookie.com/embed/${video.videoId}?autoplay=1&rel=0&modestbranding=1&fs=0"
@@ -141,8 +141,25 @@ function playVideo(index) {
       sandbox="allow-scripts allow-same-origin"
       referrerpolicy="no-referrer"
     ></iframe>
-  `;
+  `;*/
 
+  document.getElementById("player-container").innerHTML = `
+  <iframe
+    id="ytplayer"
+    src="https://www.youtube-nocookie.com/embed/${video.videoId}
+      ?autoplay=1
+      &rel=0
+      &modestbranding=1
+      &iv_load_policy=3
+      &fs=0
+      &disablekb=1
+      &playsinline=1"
+    allow="autoplay"
+    sandbox="allow-scripts allow-same-origin"
+  ></iframe>
+`;
+
+  
   setTimeout(() => {
     document
       .getElementById("player-container")
