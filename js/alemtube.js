@@ -283,11 +283,15 @@ window.addEventListener("load", () => {
 
 // לביטול פתיחה חיוצונית
 document.addEventListener("click", (e) => {
-  const a = e.target.closest("a");
-  if (a && a.href.includes("youtube.com")) {
+  const el = e.target.closest("a, iframe");
+  if (!el) return;
+
+  const href = el.href || el.src || "";
+  if (href.includes("youtube.com") || href.includes("youtu.be")) {
     e.preventDefault();
     e.stopPropagation();
     return false;
   }
-});
+}, true);
+
 
