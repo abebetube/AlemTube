@@ -175,3 +175,15 @@ body {
         left: 50%;
         transform: translateX(-50%);
       }
+
+
+/* hide youtube suggested overlay */
+#player-container iframe {
+  pointer-events: auto;
+}
+
+.ytp-pause-overlay,
+.ytp-endscreen-content,
+.ytp-ce-element {
+  display: none !important;
+}
