@@ -72,8 +72,21 @@ body {
       }
 
 
-          
-    header {
+      header {
+  background-color: #cc0000;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  font-size: clamp(1.1rem, 4vw, 1.6rem);
+}
+    
+    /*header {
       padding: 1rem;
       background-color: #cc0000;
       color: white;
@@ -81,7 +94,7 @@ body {
       padding: 1rem;
       font-size: 1.5rem;
       font-weight: bold;
-    }
+    }*/
 
     .container {
       max-width: 900px;
