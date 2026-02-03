@@ -74,7 +74,7 @@ const results = await Promise.all(checks);
 
 playlist = results.filter(item => item !== null);
 
-    }
+    
 
     if (playlist.length === 0) return alert("לא נמצאו סרטונים ניתנים לניגון");
 
