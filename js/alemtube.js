@@ -63,13 +63,17 @@ async function searchVideos() {
 
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error("Server fetch failed " + res.status);
-    const data = await res.json();
+if (!res.ok) throw new Error("Server fetch failed " + res.status);
+const data = await res.json();
 
-    for (const item of data) {
-      if (await checkEmbeddable(item.videoId)) {
-        playlist.push(item);
-      }
+const checks = data.map(item =>
+  checkEmbeddable(item.videoId).then(ok => ok ? item : null)
+);
+
+const results = await Promise.all(checks);
+
+playlist = results.filter(item => item !== null);
+
     }
 
     if (playlist.length === 0) return alert("לא נמצאו סרטונים ניתנים לניגון");
