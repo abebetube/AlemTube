@@ -4,37 +4,48 @@
   <meta charset="UTF-8" />
   <title>AlemTube</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  
   <link rel="icon" href="logo.png" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 
 <body>
+  <!-- מסך פתיחה -->
+  <div id="splash">
+    <div class="splash-content">
+      <div class="logo-animation">
+        <img src="logo.png" alt="לוגו AlemTube" class="splash-logo" />
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring delay-1"></div>
+        <div class="pulse-ring delay-2"></div>
+      </div>
+      <h1 class="splash-title">AlemTube</h1>
+      <p class="splash-subtitle">נגן יוטיוב חכם</p>
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- התוכן הראשי -->
   <div class="logo-container">
     <img src="logo.png" alt="לוגו האתר" class="logo" id="site-logo">
     <h1 class="header-title">AlemTube</h1>
   </div>
-  <div class="header-controls">
-    
-  </div>
 
   <div class="container">
     <div class="search-box">
-      <input id="searchInput" type="text" placeholder="הקלד חיפוש או קישור ליוטיוב" />
+      <input id="searchInput" type="text" placeholder="הקלד מילת חיפוש ליוטיוב" />
       <button id="searchBtn">חפש</button>
     </div>
 
-    <div id="player-container"></div>
-    <button id="autoplayToggle" class="autoplay-toggle">Autoplay: ON</button>
-    <div id="results"></div>
-  </div>
-
-  <!-- Splash -->
-  <div id="splash">
-    <div class="logo-area">
-      <img src="logo.png" />
-      <h1 class="title">AlemTube</h1>
+    <div id="player-container">
+      <div class="player-placeholder">
+        
+      </div>
     </div>
+
+    <div id="results"></div>
   </div>
 
   <script src="js/alemtube.js"></script>
