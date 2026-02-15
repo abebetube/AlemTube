@@ -46,7 +46,6 @@ def search():
         return jsonify({"error": "No query"}), 400
 
     try:
-        # שלב 1 – חיפוש מהיר
         with yt_dlp.YoutubeDL({
             **YDL_BASE_OPTS,
             "extract_flat": True
@@ -54,29 +53,17 @@ def search():
             info = ydl.extract_info(f"ytsearch15:{query}", download=False)
 
         results = []
-
-        # שלב 2 – להביא סטרים אמיתי לכל סרטון
         for item in info.get("entries", []):
-            video_url = f"https://www.youtube.com/watch?v={item['id']}"
-
-            try:
-                stream_data = get_stream_url(video_url)
-
-                results.append({
-                    "videoId": item["id"],
-                    "title": stream_data["title"],
-                    "thumb": stream_data["thumb"],
-                    "streamUrl": stream_data["streamUrl"]
-                })
-
-            except Exception:
-                continue
+            results.append({
+                "videoId": item.get("id"),
+                "title": item.get("title"),
+                "thumb": item.get("thumbnail")
+            })
 
         return jsonify({"results": results})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 # ========= סטרים בודד =========
 @app.route("/audio")
@@ -86,8 +73,7 @@ def audio():
         return jsonify({"error": "No URL"}), 400
 
     try:
-        data = get_stream_url(url)
-        return jsonify(data)
+        return jsonify(get_stream_url(url))
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
