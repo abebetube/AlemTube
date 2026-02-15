@@ -1,5 +1,6 @@
 # Base Image עם Python
-FROM python:3.14-slim-bullseye
+FROM python:3.12-slim-bullseye
+
 
 # מגדירים סביבה
 ENV PYTHONUNBUFFERED=1 \
