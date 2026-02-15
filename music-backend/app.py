@@ -73,7 +73,30 @@ def audio():
         return jsonify({"error": "No URL"}), 400
 
     try:
-        return jsonify(get_stream_url(url))
+        ydl_opts = {
+            **YDL_BASE_OPTS,
+            "format": "bestvideo+bestaudio/best",
+            "ignoreerrors": True,
+            "nocheckcertificate": True,
+            "quiet": True
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+
+        stream_url = None
+        if "url" in info:
+            stream_url = info["url"]
+        elif "formats" in info and info["formats"]:
+            stream_url = info["formats"][0]["url"]
+
+        if not stream_url:
+            return jsonify({"error": "Cannot extract stream URL"}), 500
+
+        return jsonify({
+            "title": info.get("title"),
+            "streamUrl": stream_url,
+            "thumb": info.get("thumbnail")
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
