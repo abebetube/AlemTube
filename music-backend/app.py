@@ -40,33 +40,30 @@ def search():
     if not query:
         return jsonify({"error": "No query provided"}), 400
 
-    ydl_opts = {
-        "quiet": True,
-        "skip_download": True,
-        "extract_flat": True  # מחזיר רק מידע בסיסי, בלי להוריד
-    }
-
     try:
+        ydl_opts = {
+            "quiet": True,
+            "extract_flat": True,
+            "skip_download": True
+        }
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # מחפש 10 תוצאות
-            search_result = ydl.extract_info(f"ytsearch10:{query}", download=False)
-            videos = []
+            info = ydl.extract_info(f"ytsearch15:{query}", download=False)
 
-            for entry in search_result.get("entries", []):
-                videos.append({
-                    "videoId": entry.get("id"),
-                    "title": entry.get("title"),
-                    "thumb": entry.get("thumbnail")
-                })
+        results = []
+        for entry in info.get("entries", []):
+            if not entry:
+                continue
 
-        return jsonify({
-            "query": query,
-            "results": videos
-        })
+            results.append({
+                "videoId": entry.get("id"),
+                "title": entry.get("title"),
+                "thumb": f"https://img.youtube.com/vi/{entry.get('id')}/hqdefault.jpg"
+            })
+
+        return jsonify({"results": results})
 
     except Exception as e:
-        return jsonify({"error": str(e), "results": []}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
