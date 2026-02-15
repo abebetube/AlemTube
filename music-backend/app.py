@@ -1,73 +1,93 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import yt_dlp
+import functools
 
 app = Flask(__name__)
-CORS(app)  # מאפשר ל-frontend לקרוא את ה-API מכל דומיין
+CORS(app)
 
 @app.route("/")
 def home():
     return "Backend working!"
 
-# מחזיר לינק אודיו נקי מ-YouTube
-@app.route("/audio")
-def get_audio():
-    url = request.args.get("url")
-    if not url:
-        return jsonify({"error": "No URL provided"}), 400
 
-    ydl_opts = {
-    "format": "bestaudio/best",
+# ========= הגדרות yt-dlp =========
+YDL_BASE_OPTS = {
     "quiet": True,
-    "noplaylist": True,        # לא להוריד פלייליסטים שלמים
-    "extract_flat": "in_playlist",  # כדי לקבל מידע על סרטונים בלי להוריד אותם
-    "skip_download": True,     # לא מורידים שום קובץ
-    "cachedir": False,         # לא להשתמש במטמון (מהיר יותר לבדיקה)
+    "skip_download": True,
+    "noplaylist": True,
+    "cachedir": False
 }
 
 
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
+# ========= Cache קטן לסטרים =========
+@functools.lru_cache(maxsize=100)
+def get_stream_url(video_url):
+    ydl_opts = {
+        **YDL_BASE_OPTS,
+        "format": "best[ext=mp4]/best"
+    }
 
-        return jsonify({
-            "title": info.get("title"),
-            "audio": info["url"]
-        })
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(video_url, download=False)
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return {
+        "title": info.get("title"),
+        "streamUrl": info.get("url"),
+        "thumb": info.get("thumbnail")
+    }
 
-# חיפוש אמיתי ב-YouTube עם yt-dlp
+
+# ========= חיפוש =========
 @app.route("/search")
 def search():
     query = request.args.get("q")
     if not query:
-        return jsonify({"error": "No query provided"}), 400
-
-    search_url = f"ytsearch20:{query}"  # מחזיר עד 20 סרטונים
-
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "quiet": True,
-        "skip_download": True,
-        "extract_flat": True
-    }
+        return jsonify({"error": "No query"}), 400
 
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(search_url, download=False)
+        # שלב 1 – חיפוש מהיר
+        with yt_dlp.YoutubeDL({
+            **YDL_BASE_OPTS,
+            "extract_flat": True
+        }) as ydl:
+            info = ydl.extract_info(f"ytsearch15:{query}", download=False)
 
         results = []
-        for item in info.get("entries", []):
-            results.append({
-                "videoId": item.get("id"),
-                "title": item.get("title"),
-                "thumb": item.get("thumbnail"),
-                "url": item.get("url"),
-            })
 
-        return jsonify({"query": query, "results": results})
+        # שלב 2 – להביא סטרים אמיתי לכל סרטון
+        for item in info.get("entries", []):
+            video_url = f"https://www.youtube.com/watch?v={item['id']}"
+
+            try:
+                stream_data = get_stream_url(video_url)
+
+                results.append({
+                    "videoId": item["id"],
+                    "title": stream_data["title"],
+                    "thumb": stream_data["thumb"],
+                    "streamUrl": stream_data["streamUrl"]
+                })
+
+            except Exception:
+                continue
+
+        return jsonify({"results": results})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ========= סטרים בודד =========
+@app.route("/audio")
+def audio():
+    url = request.args.get("url")
+    if not url:
+        return jsonify({"error": "No URL"}), 400
+
+    try:
+        data = get_stream_url(url)
+        return jsonify(data)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
