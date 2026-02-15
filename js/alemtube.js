@@ -85,7 +85,7 @@ async function searchVideos() {
   
   try {
     const res = await fetch(
-      `https://alemtube-v.onrender.com/search?q=${encodeURIComponent(query)}`
+      `https://alemtube-vhr1.onrender.com/search?q=${encodeURIComponent(query)}`
     );
     
     if (!res.ok) {
