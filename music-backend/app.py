@@ -40,17 +40,20 @@ def search():
     if not query:
         return jsonify({"error": "No query provided"}), 400
 
-    try:
-        ydl_opts = {
-            "quiet": True,
-            "extract_flat": True,
-            "skip_download": True
-        }
+    ydl_opts = {
+        "quiet": True,
+        "extract_flat": True
+    }
 
+    try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(f"ytsearch15:{query}", download=False)
+            info = ydl.extract_info(
+                f"ytsearch10:{query}",
+                download=False
+            )
 
         results = []
+
         for entry in info.get("entries", []):
             if not entry:
                 continue
@@ -65,5 +68,6 @@ def search():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
