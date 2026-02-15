@@ -60,12 +60,14 @@ def search():
             try:
                 # סטרים אמיתי
                 ydl_opts = {
-                    **YDL_BASE_OPTS,
-                    "format": "bestvideo+bestaudio/best",
-                    "ignoreerrors": True,
-                    "nocheckcertificate": True,
-                    "quiet": True
-                }
+    "quiet": True,
+    "nocheckcertificate": True,
+    "ignoreerrors": True,
+    "extract_flat": False,
+    "format": "best[ext=mp4]/best",
+    "user_agent": "Mozilla/5.0",
+}
+
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     stream_info = ydl.extract_info(video_url, download=False)
 
@@ -92,3 +94,4 @@ def search():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
