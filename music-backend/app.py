@@ -46,6 +46,7 @@ def search():
         return jsonify({"error": "No query"}), 400
 
     try:
+        # חיפוש מהיר ללא הורדה
         with yt_dlp.YoutubeDL({
             **YDL_BASE_OPTS,
             "extract_flat": True
@@ -53,51 +54,41 @@ def search():
             info = ydl.extract_info(f"ytsearch15:{query}", download=False)
 
         results = []
+
         for item in info.get("entries", []):
-            results.append({
-                "videoId": item.get("id"),
-                "title": item.get("title"),
-                "thumb": item.get("thumbnail")
-            })
+            video_url = f"https://www.youtube.com/watch?v={item['id']}"
+            try:
+                # סטרים אמיתי
+                ydl_opts = {
+                    **YDL_BASE_OPTS,
+                    "format": "bestvideo+bestaudio/best",
+                    "ignoreerrors": True,
+                    "nocheckcertificate": True,
+                    "quiet": True
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    stream_info = ydl.extract_info(video_url, download=False)
+
+                stream_url = None
+                if "url" in stream_info:
+                    stream_url = stream_info["url"]
+                elif "formats" in stream_info and stream_info["formats"]:
+                    stream_url = stream_info["formats"][0]["url"]
+
+                if not stream_url:
+                    continue  # דילוג על סרטון שלא ניתן להשמיע
+
+                results.append({
+                    "videoId": item["id"],
+                    "title": stream_info.get("title"),
+                    "thumb": stream_info.get("thumbnail"),
+                    "streamUrl": stream_url
+                })
+
+            except Exception:
+                continue  # דילוג על סרטון שלא מצליח
 
         return jsonify({"results": results})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-# ========= סטרים בודד =========
-@app.route("/audio")
-def audio():
-    url = request.args.get("url")
-    if not url:
-        return jsonify({"error": "No URL"}), 400
-
-    try:
-        ydl_opts = {
-            **YDL_BASE_OPTS,
-            "format": "bestvideo+bestaudio/best",
-            "ignoreerrors": True,
-            "nocheckcertificate": True,
-            "quiet": True
-        }
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-
-        stream_url = None
-        if "url" in info:
-            stream_url = info["url"]
-        elif "formats" in info and info["formats"]:
-            stream_url = info["formats"][0]["url"]
-
-        if not stream_url:
-            return jsonify({"error": "Cannot extract stream URL"}), 500
-
-        return jsonify({
-            "title": info.get("title"),
-            "streamUrl": stream_url,
-            "thumb": info.get("thumbnail")
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
