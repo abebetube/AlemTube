@@ -5,7 +5,6 @@ import yt_dlp
 app = Flask(__name__)
 CORS(app)  # מאפשר ל-frontend לקרוא את ה-API מכל דומיין
 
-# בדיקה שהשרת עובד
 @app.route("/")
 def home():
     return "Backend working!"
@@ -34,18 +33,40 @@ def get_audio():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# חיפוש / מחזיר תוצאה לדוגמה (ניתן לשדרג בעתיד עם yt-dlp חיפוש)
+# חיפוש אמיתי ב-YouTube עם yt-dlp
 @app.route("/search")
 def search():
     query = request.args.get("q")
     if not query:
         return jsonify({"error": "No query provided"}), 400
 
-    # אפשר לשלב כאן yt-dlp לחיפוש, כרגע מחזיר רשימה ריקה עם query
-    return jsonify({
-        "query": query,
-        "results": []  # בעתיד: רשימת סרטונים או אודיו
-    })
+    ydl_opts = {
+        "quiet": True,
+        "skip_download": True,
+        "extract_flat": True  # מחזיר רק מידע בסיסי, בלי להוריד
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            # מחפש 10 תוצאות
+            search_result = ydl.extract_info(f"ytsearch10:{query}", download=False)
+            videos = []
+
+            for entry in search_result.get("entries", []):
+                videos.append({
+                    "videoId": entry.get("id"),
+                    "title": entry.get("title"),
+                    "thumb": entry.get("thumbnail")
+                })
+
+        return jsonify({
+            "query": query,
+            "results": videos
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e), "results": []}), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
