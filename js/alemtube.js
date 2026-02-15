@@ -5,7 +5,7 @@ let currentIndex = 0;
 let playerContainer, results, searchInput;
 let autoplayEnabled = true;
 let player = null;
-let failedVideos = new Set(); // סט למעקב אחר סרטונים שנכשלו
+let failedVideos = new Set();
 
 document.addEventListener("DOMContentLoaded", () => {
   initializeApp();
@@ -15,53 +15,41 @@ function initializeApp() {
   playerContainer = document.getElementById("player-container");
   results = document.getElementById("results");
   searchInput = document.getElementById("searchInput");
-  
+
   const searchBtn = document.getElementById("searchBtn");
   if (searchBtn) searchBtn.onclick = searchVideos;
-  
+
   searchInput.addEventListener("keydown", e => {
     if (e.key === "Enter") searchVideos();
   });
-  
-  // הצגת מסך פתיחה
+
   showSplashScreen();
-  
-  // טעינת YouTube API
   loadYouTubeAPI();
 }
 
 function showSplashScreen() {
   const splash = document.getElementById("splash");
   const loadingProgress = document.querySelector('.loading-progress');
-  
+
   if (!splash || !loadingProgress) return;
-  
+
   let progress = 0;
   const interval = setInterval(() => {
     progress += Math.random() * 20 + 10;
-    
+
     if (progress >= 100) {
       progress = 100;
       clearInterval(interval);
-      
-      // השלמת טעינה
+
       setTimeout(() => {
         splash.classList.add('hidden');
-        
         setTimeout(() => {
           splash.style.display = 'none';
-          
-          // פוקוס על שדה החיפוש
-          setTimeout(() => {
-            if (searchInput) {
-              searchInput.focus();
-            }
-          }, 300);
-          
+          searchInput?.focus();
         }, 500);
       }, 500);
     }
-    
+
     loadingProgress.style.width = progress + '%';
   }, 150);
 }
@@ -72,289 +60,204 @@ async function searchVideos() {
     alert("נא להזין מילת חיפוש");
     return;
   }
-  
+
   playlist = [];
   currentIndex = 0;
-  failedVideos.clear(); // נקה את רשימת הסרטונים שנכשלו
+  failedVideos.clear();
   results.innerHTML = "";
-  
   playerContainer.innerHTML = '<div class="loading">מחפש סרטונים...</div>';
-  
+
   const searchBtn = document.getElementById("searchBtn");
   if (searchBtn) searchBtn.disabled = true;
-  
+
   try {
     const res = await fetch(
       `https://alemtube-vhr1.onrender.com/search?q=${encodeURIComponent(query)}`
     );
-    
-    if (!res.ok) {
-      throw new Error(`שגיאה בחיפוש: ${res.status}`);
-    }
-    
+
+    if (!res.ok) throw new Error(res.status);
+
+
     const data = await res.json();
-    
-    if (!data || data.length === 0) {
-      results.innerHTML = '<div class="empty-list">לא נמצאו סרטונים</div>';
-      playerContainer.innerHTML = '<div class="player-placeholder"><p>לא נמצאו סרטונים</p></div>';
+const videos = data.results;
+
+if (!Array.isArray(videos) || videos.length === 0) {
+  results.innerHTML = '<div class="empty-list">לא נמצאו סרטונים</div>';
+  playerContainer.innerHTML =
+    '<div class="player-placeholder"><p>לא נמצאו סרטונים</p></div>';
+  return;
+}
+
+// חשוב — להגדיר לפני השימוש
+const playableVideos = [];
+
+for (const video of videos) {
+  if (failedVideos.has(video.videoId)) continue;
+
+  const isPlayable = await checkIfVideoPlayable(video.videoId);
+
+  if (isPlayable) {
+    playableVideos.push({
+      ...video,
+      thumb:
+        video.thumb ||
+        `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`,
+    });
+  } else {
+    failedVideos.add(video.videoId);
+  }
+}
+
+
+    if (!playableVideos.length) {
+      showEmpty("לא נמצאו סרטונים זמינים לניגון");
       return;
     }
-    
-    // בדיקת סרטונים שניתנים לנגינה - בדיקה מעמיקה יותר
-    const playableVideos = [];
-    
-    for (const video of data) {
-      // דלג אם כבר נכשל בעבר
-      if (failedVideos.has(video.videoId)) continue;
-      
-      // בדוק אם הסרטון זמין
-      const isPlayable = await checkIfVideoPlayable(video.videoId);
-      if (isPlayable) {
-        playableVideos.push({
-          ...video,
-          thumb: video.thumb || `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`
-        });
-      } else {
-        // הוסף לרשימת הסרטונים שנכשלו
-        failedVideos.add(video.videoId);
-        console.log(`סרטון לא זמין נדחה: ${video.videoId}`);
-      }
-    }
-    
-    if (playableVideos.length === 0) {
-      results.innerHTML = '<div class="empty-list">לא נמצאו סרטונים זמינים לניגון</div>';
-      playerContainer.innerHTML = '<div class="player-placeholder"><p>לא נמצאו סרטונים זמינים לניגון</p></div>';
-      return;
-    }
-    
+
     playlist = playableVideos;
-    
-    // אם יש סרטונים, נגן את הראשון
-    if (playlist.length > 0) {
-      playVideo(0);
-    }
-    
+    playVideo(0);
     renderResults();
-    
+
   } catch (err) {
-    console.error("שגיאה בחיפוש:", err);
-    playerContainer.innerHTML = '<div class="player-placeholder"><p>שגיאה בחיפוש</p></div>';
+    console.error("שגיאה:", err);
+    showEmpty("שגיאה בחיפוש");
   } finally {
     if (searchBtn) searchBtn.disabled = false;
   }
 }
 
+function showEmpty(msg) {
+  results.innerHTML = `<div class="empty-list">${msg}</div>`;
+  playerContainer.innerHTML =
+    `<div class="player-placeholder"><p>${msg}</p></div>`;
+}
+
 async function checkIfVideoPlayable(videoId) {
-  return new Promise((resolve) => {
-    // בדיקה פשוטה - נסה לטעון את התמונה
+  return new Promise(resolve => {
     const img = new Image();
-    img.onload = () => {
-      // אם התמונה נטענת, בדוק גם אם אפשר לטעון את ה-iFrame
-      testIframeEmbed(videoId).then(resolve);
-    };
+    img.onload = () => testIframeEmbed(videoId).then(resolve);
     img.onerror = () => resolve(false);
     img.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
     setTimeout(() => resolve(false), 3000);
   });
 }
 
-// בדיקה נוספת - ניסיון לטעון iframe קטן
 async function testIframeEmbed(videoId) {
-  return new Promise((resolve) => {
-    const testIframe = document.createElement('iframe');
-    testIframe.style.display = 'none';
-    testIframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
-    testIframe.onload = () => {
-      document.body.removeChild(testIframe);
+  return new Promise(resolve => {
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = `https://www.youtube.com/embed/${videoId}`;
+
+    iframe.onload = () => {
+      iframe.remove();
       resolve(true);
     };
-    testIframe.onerror = () => {
-      document.body.removeChild(testIframe);
+
+    iframe.onerror = () => {
+      iframe.remove();
       resolve(false);
     };
-    
+
     setTimeout(() => {
-      if (testIframe.parentNode) {
-        document.body.removeChild(testIframe);
-      }
+      iframe.remove();
       resolve(false);
     }, 2000);
-    
-    document.body.appendChild(testIframe);
+
+    document.body.appendChild(iframe);
   });
 }
 
 function loadYouTubeAPI() {
-  const tag = document.createElement('script');
-  tag.src = 'https://www.youtube.com/iframe_api';
-  const firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  const tag = document.createElement("script");
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.body.appendChild(tag);
 }
 
-window.onYouTubeIframeAPIReady = function() {
+window.onYouTubeIframeAPIReady = () => {
   console.log("YouTube API Ready");
 };
 
 function playVideo(index) {
-  if (index < 0 || index >= playlist.length) return;
-  
+  if (!playlist[index]) return;
+
   currentIndex = index;
   const video = playlist[index];
-  
+
   if (player) {
-    // טען סרטון חדש בנגן הקיים
     player.loadVideoById(video.videoId);
-    player.playVideo();
   } else {
-    // צור נגן חדש
     playerContainer.innerHTML = '<div id="player"></div>';
-    
-    player = new YT.Player('player', {
-      height: '500',
-      width: '100%',
+
+    player = new YT.Player("player", {
+      height: "500",
+      width: "100%",
       videoId: video.videoId,
       playerVars: {
-        'autoplay': 1,
-        'rel': 0,
-        'modestbranding': 1,
-        'playsinline': 1
+        autoplay: 1,
+        rel: 0,
+        modestbranding: 1,
+        playsinline: 1
       },
       events: {
-        'onReady': onPlayerReady,
-        'onStateChange': onPlayerStateChange,
-        'onError': onPlayerError
+        onStateChange: onPlayerStateChange,
+        onError: onPlayerError
       }
     });
   }
-  
+
   renderResults();
 }
 
-function onPlayerReady(event) {
-  console.log("Player ready");
-}
-
 function onPlayerStateChange(event) {
-  // כאשר סרטון מסתיים
-  if (event.data === YT.PlayerState.ENDED) {
-    if (autoplayEnabled) {
-      // נגן את הסרטון הבא
-      setTimeout(() => {
-        playNextAvailableVideo();
-      }, 1000);
-    }
+  if (event.data === YT.PlayerState.ENDED && autoplayEnabled) {
+    playNextAvailableVideo();
   }
 }
 
-function onPlayerError(event) {
-  console.error("Player error code:", event.data);
-  
-  // שגיאות ב-YouTube Player API:
-  // 2, 5, 100, 101, 150 - סרטון לא זמין
-  
-  const currentVideo = playlist[currentIndex];
-  if (currentVideo) {
-    // הוסף את הסרטון לרשימת הסרטונים שנכשלו
-    failedVideos.add(currentVideo.videoId);
-    console.log(`סרטון נכשל נוסף לרשימה: ${currentVideo.videoId}`);
-    
-    // הסר את הסרטון מהפלייליסט
-    playlist.splice(currentIndex, 1);
-    
-    // אם אין יותר סרטונים ברשימה
-    if (playlist.length === 0) {
-      playerContainer.innerHTML = '<div class="player-placeholder"><p>אין סרטונים זמינים</p></div>';
-      results.innerHTML = '<div class="empty-list">אין סרטונים זמינים</div>';
-      return;
-    }
-    
-    // התאם את האינדקס הנוכחי
-    if (currentIndex >= playlist.length) {
-      currentIndex = playlist.length - 1;
-    }
-    
-    // נגן סרטון זמין
-    if (autoplayEnabled && playlist.length > 0) {
-      console.log("עובר לסרטון זמין הבא...");
-      setTimeout(() => {
-        playVideo(currentIndex);
-      }, 1000);
-    } else if (playlist.length > 0) {
-      // אם אוטופליי כבוי, עדכן רק את התצוגה
-      renderResults();
-    }
-  }
-}
+function onPlayerError() {
+  const video = playlist[currentIndex];
+  if (!video) return;
 
-// פונקציה למעבר לסרטון הבא הזמין
-function playNextAvailableVideo() {
-  if (playlist.length === 0) {
-    playerContainer.innerHTML = '<div class="player-placeholder"><p>אין עוד סרטונים</p></div>';
+  failedVideos.add(video.videoId);
+  playlist.splice(currentIndex, 1);
+
+  if (!playlist.length) {
+    showEmpty("אין סרטונים זמינים");
     return;
   }
-  
-  let nextIndex = currentIndex + 1;
-  
-  // מצא את הסרטון הבא הזמין
-  while (nextIndex < playlist.length) {
-    const nextVideo = playlist[nextIndex];
-    if (nextVideo && !failedVideos.has(nextVideo.videoId)) {
-      playVideo(nextIndex);
-      return;
-    }
-    nextIndex++;
-  }
-  
-  // אם לא נמצא סרטון אחרי המיקום הנוכחי, נסה מההתחלה
-  for (let i = 0; i < currentIndex; i++) {
-    const video = playlist[i];
-    if (video && !failedVideos.has(video.videoId)) {
-      playVideo(i);
-      return;
-    }
-  }
-  
-  // אם לא נמצא שום סרטון זמין
-  playerContainer.innerHTML = '<div class="player-placeholder"><p>אין סרטונים זמינים</p></div>';
-  results.innerHTML = '<div class="empty-list">אין סרטונים זמינים</div>';
+
+  if (currentIndex >= playlist.length) currentIndex = 0;
+  playVideo(currentIndex);
+}
+
+function playNextAvailableVideo() {
+  if (!playlist.length) return;
+
+  let next = currentIndex + 1;
+  if (next >= playlist.length) next = 0;
+
+  playVideo(next);
 }
 
 function renderResults() {
   results.innerHTML = "";
-  
-  if (playlist.length === 0) {
-    results.innerHTML = '<div class="empty-list">אין סרטונים ברשימה</div>';
-    return;
-  }
-  
-  // הצג רק סרטונים שלא נכשלו
+
   playlist.forEach((video, index) => {
-    // דלג על סרטונים שנכשלו
     if (failedVideos.has(video.videoId)) return;
-    
+
     const div = document.createElement("div");
     div.className = "video-item" + (index === currentIndex ? " active" : "");
+
     div.innerHTML = `
-      <img src="${video.thumb}" alt="${video.title}" 
-           onerror="this.src='https://via.placeholder.com/320x180/333333/ffffff?text=תמונה+לא+זמינה'">
+      <img src="${video.thumb}" alt="${video.title}">
       <div class="video-title">${video.title || "ללא כותרת"}</div>
     `;
-    
-    div.onclick = () => {
-      playVideo(index);
-    };
-    
+
+    div.onclick = () => playVideo(index);
     results.appendChild(div);
   });
-  
-  // אם אחרי הסינון אין תוצאות
-  if (results.children.length === 0) {
-    results.innerHTML = '<div class="empty-list">אין סרטונים זמינים להצגה</div>';
-  }
-}
 
-// פונקציה לניקוי הפלייליסט מסרטונים שנכשלו
-function cleanupFailedVideos() {
-  playlist = playlist.filter(video => !failedVideos.has(video.videoId));
-  renderResults();
+  if (!results.children.length) {
+    results.innerHTML = '<div class="empty-list">אין סרטונים</div>';
+  }
 }
