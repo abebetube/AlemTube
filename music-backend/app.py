@@ -1,16 +1,22 @@
-from flask_cors import CORS  # <-- חשוב כדי שהדפדפן יוכל לשלוח בקשות
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import yt_dlp
 
 app = Flask(__name__)
-CORS(app)  # מאפשר ל-frontend לשלוח בקשות מכל דומיין
+CORS(app)  # מאפשר ל-frontend לקרוא את ה-API מכל דומיין
 
-# הקיים
+# בדיקה שהשרת עובד
 @app.route("/")
 def home():
     return "Backend working!"
 
+# מחזיר לינק אודיו נקי מ-YouTube
 @app.route("/audio")
 def get_audio():
     url = request.args.get("url")
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+
     ydl_opts = {
         "format": "bestaudio",
         "quiet": True
@@ -26,19 +32,19 @@ def get_audio():
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 500
 
-# ✨ הוספת /search
+# חיפוש / מחזיר תוצאה לדוגמה (ניתן לשדרג בעתיד עם yt-dlp חיפוש)
 @app.route("/search")
 def search():
     query = request.args.get("q")
     if not query:
         return jsonify({"error": "No query provided"}), 400
 
-    # לדוגמה: מחזיר מידע כמו /audio אבל עם query
+    # אפשר לשלב כאן yt-dlp לחיפוש, כרגע מחזיר רשימה ריקה עם query
     return jsonify({
         "query": query,
-        "results": []  # כאן אפשר לשלב yt-dlp לחיפוש או רשימה ריקה
+        "results": []  # בעתיד: רשימת סרטונים או אודיו
     })
 
 if __name__ == "__main__":
