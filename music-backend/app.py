@@ -64,9 +64,13 @@ def search():
     "nocheckcertificate": True,
     "ignoreerrors": True,
     "extract_flat": False,
-    "format": "best[ext=mp4]/best",
-    "user_agent": "Mozilla/5.0",
+    "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "geo_bypass": True,
+    "noplaylist": True,
+    "cachedir": False
 }
+
 
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     stream_info = ydl.extract_info(video_url, download=False)
@@ -94,4 +98,5 @@ def search():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
