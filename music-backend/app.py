@@ -17,9 +17,14 @@ def get_audio():
         return jsonify({"error": "No URL provided"}), 400
 
     ydl_opts = {
-        "format": "bestaudio",
-        "quiet": True
-    }
+    "format": "bestaudio/best",
+    "quiet": True,
+    "noplaylist": True,        # לא להוריד פלייליסטים שלמים
+    "extract_flat": "in_playlist",  # כדי לקבל מידע על סרטונים בלי להוריד אותם
+    "skip_download": True,     # לא מורידים שום קובץ
+    "cachedir": False,         # לא להשתמש במטמון (מהיר יותר לבדיקה)
+}
+
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -40,34 +45,29 @@ def search():
     if not query:
         return jsonify({"error": "No query provided"}), 400
 
+    search_url = f"ytsearch20:{query}"  # מחזיר עד 20 סרטונים
+
     ydl_opts = {
+        "format": "bestaudio/best",
         "quiet": True,
+        "skip_download": True,
         "extract_flat": True
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(
-                f"ytsearch10:{query}",
-                download=False
-            )
+            info = ydl.extract_info(search_url, download=False)
 
         results = []
-
-        for entry in info.get("entries", []):
-            if not entry:
-                continue
-
+        for item in info.get("entries", []):
             results.append({
-                "videoId": entry.get("id"),
-                "title": entry.get("title"),
-                "thumb": f"https://img.youtube.com/vi/{entry.get('id')}/hqdefault.jpg"
+                "videoId": item.get("id"),
+                "title": item.get("title"),
+                "thumb": item.get("thumbnail"),
+                "url": item.get("url"),
             })
 
-        return jsonify({"results": results})
+        return jsonify({"query": query, "results": results})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-
