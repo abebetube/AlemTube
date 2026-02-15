@@ -4,7 +4,7 @@ import yt_dlp
 import functools
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route("/")
 def home():
@@ -91,3 +91,4 @@ def audio():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
