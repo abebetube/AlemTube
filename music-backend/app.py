@@ -15,14 +15,13 @@ def home():
 @app.route("/search")
 def search():
     query = request.args.get("q")
-
     if not query:
         return jsonify({"error": "missing query"}), 400
 
     try:
         with yt_dlp.YoutubeDL({
             "quiet": True,
-            "extract_flat": True,  # חשוב לחיפוש מהיר, בלי להוריד
+            "extract_flat": True,   # מחפש בלי להוריד
             "skip_download": True
         }) as ydl:
             info = ydl.extract_info(f"ytsearch10:{query}", download=False)
@@ -44,28 +43,24 @@ def search():
         return jsonify({"error": str(e)}), 500
 
 
-
 # ---------- STREAM ----------
 @app.route("/stream")
 def stream():
     vid = request.args.get("id")
-
     if not vid:
         return jsonify({"error": "missing id"}), 400
 
-    url = f"https://youtube.com/watch?v={vid}"
-
+    url = f"https://www.youtube.com/watch?v={vid}"
     try:
         with yt_dlp.YoutubeDL({
             "quiet": True,
             "format": "best[ext=mp4]",
             "noplaylist": True
         }) as ydl:
-
             info = ydl.extract_info(url, download=False)
-except Exception as e:
-    print("ERROR STREAM:", e)  # לוג ב־Render
-    return jsonify({"error": str(e)}), 500
+
+        if not info.get("url"):
+            return jsonify({"error": "Could not extract stream URL"}), 500
 
         return jsonify({
             "streamUrl": info.get("url"),
@@ -74,11 +69,9 @@ except Exception as e:
         })
 
     except Exception as e:
+        print("STREAM ERROR:", e)
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
-
-
-
+    app.run(debug=True, host="0.0.0.0", port=5000)
