@@ -20,20 +20,17 @@ def search():
         return jsonify({"error": "missing query"}), 400
 
     try:
-        wiwith yt_dlp.YoutubeDL({
-    "quiet": True,
-    "format": "best",
-    "noplaylist": True
-}) as ydl:
-    info = ydl.extract_info(url, download=False)
-
+        with yt_dlp.YoutubeDL({
+            "quiet": True,
+            "extract_flat": True,  # חשוב לחיפוש מהיר, בלי להוריד
+            "skip_download": True
+        }) as ydl:
+            info = ydl.extract_info(f"ytsearch10:{query}", download=False)
 
         results = []
-
         for e in info.get("entries", []):
             if not e.get("id"):
                 continue
-
             results.append({
                 "videoId": e["id"],
                 "title": e.get("title"),
@@ -43,7 +40,9 @@ def search():
         return jsonify({"results": results})
 
     except Exception as e:
+        print("SEARCH ERROR:", e)
         return jsonify({"error": str(e)}), 500
+
 
 
 # ---------- STREAM ----------
@@ -80,5 +79,6 @@ except Exception as e:
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
