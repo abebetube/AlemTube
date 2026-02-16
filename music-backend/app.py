@@ -8,15 +8,16 @@ CORS(app)
 
 @app.route("/")
 def home():
-    return "Backend working!"
+    return "AlemTube backend OK"
 
 
-# ========= חיפוש בלבד =========
+# ---------- SEARCH ----------
 @app.route("/search")
 def search():
     query = request.args.get("q")
+
     if not query:
-        return jsonify({"error": "No query"}), 400
+        return jsonify({"error": "missing query"}), 400
 
     try:
         with yt_dlp.YoutubeDL({
@@ -25,17 +26,22 @@ def search():
             "skip_download": True
         }) as ydl:
 
-            info = ydl.extract_info(f"ytsearch10:{query}", download=False)
+            info = ydl.extract_info(
+                f"ytsearch10:{query}",
+                download=False
+            )
 
-        results = [
-            {
-                "videoId": item["id"],
-                "title": item["title"],
-                "thumb": item.get("thumbnail")
-            }
-            for item in info.get("entries", [])
-            if item.get("id")
-        ]
+        results = []
+
+        for e in info.get("entries", []):
+            if not e.get("id"):
+                continue
+
+            results.append({
+                "videoId": e["id"],
+                "title": e.get("title"),
+                "thumb": e.get("thumbnail")
+            })
 
         return jsonify({"results": results})
 
@@ -43,19 +49,20 @@ def search():
         return jsonify({"error": str(e)}), 500
 
 
-# ========= קבלת סטרים =========
+# ---------- STREAM ----------
 @app.route("/stream")
 def stream():
-    video_id = request.args.get("id")
-    if not video_id:
-        return jsonify({"error": "No video id"}), 400
+    vid = request.args.get("id")
 
-    url = f"https://www.youtube.com/watch?v={video_id}"
+    if not vid:
+        return jsonify({"error": "missing id"}), 400
+
+    url = f"https://youtube.com/watch?v={vid}"
 
     try:
         with yt_dlp.YoutubeDL({
             "quiet": True,
-            "format": "best",
+            "format": "best[ext=mp4]",
             "noplaylist": True
         }) as ydl:
 
@@ -69,3 +76,7 @@ def stream():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
