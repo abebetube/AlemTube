@@ -3,3 +3,5 @@ ffmpeg-python
 flask
 flask-cors
 gunicorn
+
+yt-dlp>=2025.01.01
