@@ -20,16 +20,13 @@ def search():
         return jsonify({"error": "missing query"}), 400
 
     try:
-        with yt_dlp.YoutubeDL({
-            "quiet": True,
-            "extract_flat": True,
-            "skip_download": True
-        }) as ydl:
+        wiwith yt_dlp.YoutubeDL({
+    "quiet": True,
+    "format": "best",
+    "noplaylist": True
+}) as ydl:
+    info = ydl.extract_info(url, download=False)
 
-            info = ydl.extract_info(
-                f"ytsearch10:{query}",
-                download=False
-            )
 
         results = []
 
@@ -80,3 +77,4 @@ def stream():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
