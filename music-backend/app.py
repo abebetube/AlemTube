@@ -21,10 +21,10 @@ def search():
     try:
         with yt_dlp.YoutubeDL({
             "quiet": True,
-            "extract_flat": True,   # מחפש בלי להוריד
-            "skip_download": True
+            "format": "best",
+            "noplaylist": True
         }) as ydl:
-            info = ydl.extract_info(f"ytsearch10:{query}", download=False)
+            info = ydl.extract_info(f"ytsearch:{query}", download=False)
 
         results = []
         for e in info.get("entries", []):
@@ -39,8 +39,8 @@ def search():
         return jsonify({"results": results})
 
     except Exception as e:
-        print("SEARCH ERROR:", e)
         return jsonify({"error": str(e)}), 500
+
 
 
 # ---------- STREAM ----------
@@ -76,4 +76,5 @@ def stream():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
+
 
