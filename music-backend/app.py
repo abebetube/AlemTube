@@ -56,6 +56,7 @@ def stream():
             "quiet": True,
             "format": "best[ext=mp4]",
             "noplaylist": True
+            "jsruntimes": ["deno"]   # או ["node"]
         }) as ydl:
             info = ydl.extract_info(url, download=False)
 
@@ -75,3 +76,4 @@ def stream():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
+
