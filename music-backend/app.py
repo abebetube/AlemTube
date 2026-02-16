@@ -64,6 +64,9 @@ def stream():
         }) as ydl:
 
             info = ydl.extract_info(url, download=False)
+except Exception as e:
+    print("ERROR STREAM:", e)  # לוג ב־Render
+    return jsonify({"error": str(e)}), 500
 
         return jsonify({
             "streamUrl": info.get("url"),
@@ -77,4 +80,5 @@ def stream():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
