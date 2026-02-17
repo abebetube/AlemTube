@@ -15,23 +15,25 @@ def home():
 @app.route("/search")
 def search():
     query = request.args.get("q")
+
     if not query:
         return jsonify({"error": "missing query"}), 400
 
     try:
         with yt_dlp.YoutubeDL({
             "quiet": True,
-            "format": "best",
-            "noplaylist": True
+            "extract_flat": True,
+            "skip_download": True
         }) as ydl:
-            info = ydl.extract_info(f"ytsearch:{query}", download=False)
+            info = ydl.extract_info("ytsearch10:{}".format(query), download=False)
 
         results = []
         for e in info.get("entries", []):
             if not e.get("id"):
                 continue
+
             results.append({
-                "videoId": e["id"],
+                "videoId": e.get("id"),
                 "title": e.get("title"),
                 "thumb": e.get("thumbnail")
             })
@@ -39,29 +41,28 @@ def search():
         return jsonify({"results": results})
 
     except Exception as e:
+        print("SEARCH ERROR:", e)
         return jsonify({"error": str(e)}), 500
-
 
 
 # ---------- STREAM ----------
 @app.route("/stream")
 def stream():
     vid = request.args.get("id")
+
     if not vid:
         return jsonify({"error": "missing id"}), 400
 
-    url = f"https://www.youtube.com/watch?v={vid}"
+    url = "https://www.youtube.com/watch?v={}".format(vid)
+
     try:
         with yt_dlp.YoutubeDL({
             "quiet": True,
-            "format": "best[ext=mp4]",
+            "format": "best[ext=mp4]/best",
             "noplaylist": True
-            "jsruntimes": ["deno"]   # או ["node"]
         }) as ydl:
-            info = ydl.extract_info(url, download=False)
 
-        if not info.get("url"):
-            return jsonify({"error": "Could not extract stream URL"}), 500
+            info = ydl.extract_info(url, download=False)
 
         return jsonify({
             "streamUrl": info.get("url"),
@@ -75,6 +76,4 @@ def stream():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
-
-
+    app.run(host="0.0.0.0", port=10000)
