@@ -1,7 +1,17 @@
-yt-dlp
+yt-dlp>=2025.01.01
+ffmpeg-python
+flask
+flask-cors
+gunicorn
+
+
+
+/*yt-dlp
 ffmpeg-python
 flask
 flask-cors
 gunicorn
 
 yt-dlp>=2025.01.01
+
+*/
