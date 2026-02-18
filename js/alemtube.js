@@ -123,6 +123,10 @@ async function playVideo(index) {
     הדפדפן שלך לא תומך בניגון וידאו.
   </video>
 `;
+    if (!data.streamUrl) {
+  alert("Video not playable via yt-dlp");
+}
+
 
 
     document.getElementById("player").onended =
