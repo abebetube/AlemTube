@@ -1,15 +1,17 @@
 "use strict";
 
-// ---------- BACKEND ----------
+// ---------------- BASE URL ----------------
 const BASE_URL = "https://alemtube-8nwl.onrender.com";
 
 let playlist = [];
 let currentIndex = 0;
-
 let playerContainer, results, searchInput;
 
-// ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {
+  initializeApp();
+});
+
+function initializeApp() {
   playerContainer = document.getElementById("player-container");
   results = document.getElementById("results");
   searchInput = document.getElementById("searchInput");
@@ -19,10 +21,38 @@ document.addEventListener("DOMContentLoaded", () => {
   searchInput?.addEventListener("keydown", e => {
     if (e.key === "Enter") searchVideos();
   });
-});
 
+  showSplashScreen();
+}
 
-// ---------- SEARCH ----------
+// ---------------- SPLASH ----------------
+function showSplashScreen() {
+  const splash = document.getElementById("splash");
+  const loadingProgress = document.querySelector(".loading-progress");
+  if (!splash || !loadingProgress) return;
+
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.random() * 20 + 10;
+
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+
+      setTimeout(() => {
+        splash.classList.add("hidden");
+        setTimeout(() => {
+          splash.style.display = "none";
+          searchInput?.focus();
+        }, 500);
+      }, 500);
+    }
+
+    loadingProgress.style.width = progress + "%";
+  }, 150);
+}
+
+// ---------------- SEARCH ----------------
 async function searchVideos() {
   const query = searchInput.value.trim();
 
@@ -30,6 +60,9 @@ async function searchVideos() {
     alert("נא להזין מילת חיפוש");
     return;
   }
+
+  playlist = [];
+  currentIndex = 0;
 
   results.innerHTML = "";
   playerContainer.innerHTML = '<div class="loading">מחפש...</div>';
@@ -43,15 +76,14 @@ async function searchVideos() {
 
     const data = await res.json();
 
-    if (!data.results || !data.results.length) {
+    if (!data.results?.length) {
       showEmpty("לא נמצאו סרטונים");
       return;
     }
 
     playlist = data.results;
-    currentIndex = 0;
 
-    playVideo(currentIndex);
+    playVideo(0);
     renderResults();
 
   } catch (err) {
@@ -60,47 +92,45 @@ async function searchVideos() {
   }
 }
 
+// ---------------- PLAY VIDEO ----------------
+const BASE_URL = "https://alemtube-backend.onrender.com";
 
-// ---------- PLAY VIDEO ----------
-async function playVideo(index) {
-  const video = playlist[index];
-  if (!video) return;
+async function playVideo(videoId) {
 
-  currentIndex = index;
+  const playerContainer = document.getElementById("player-container");
 
   playerContainer.innerHTML = `
     <iframe
       width="100%"
-      height="500"
-      src="https://www.youtube.com/embed/${video.videoId}?autoplay=1"
+      height="400"
+      src="https://www.youtube.com/embed/${videoId}?autoplay=1"
       frameborder="0"
       allow="autoplay; encrypted-media"
       allowfullscreen>
     </iframe>
   `;
 
-  // מידע נוסף מהשרת (yt-dlp metadata)
+  // מביא מידע מהשרת (אופציונלי)
   try {
-    const res = await fetch(`${BASE_URL}/info?id=${video.videoId}`);
+    const res = await fetch(`${BASE_URL}/info?id=${videoId}`);
     const data = await res.json();
-    console.log("VIDEO INFO:", data);
+
+    console.log("Video info:", data);
+
   } catch (err) {
     console.log("info error", err);
   }
-
-  renderResults();
 }
 
 
-// ---------- NEXT VIDEO ----------
-function playNextVideo() {
+// ---------------- PLAY NEXT ----------------
+function playNextAvailableVideo() {
   let next = currentIndex + 1;
   if (next >= playlist.length) next = 0;
   playVideo(next);
 }
 
-
-// ---------- RESULTS UI ----------
+// ---------------- RENDER LIST ----------------
 function renderResults() {
   results.innerHTML = "";
 
@@ -110,8 +140,8 @@ function renderResults() {
       "video-item" + (index === currentIndex ? " active" : "");
 
     div.innerHTML = `
-      <img src="${video.thumb || ''}">
-      <div class="video-title">${video.title || "ללא כותרת"}</div>
+      <img src="${video.thumb || ''}" alt="">
+      <div class="video-title">${video.title}</div>
     `;
 
     div.onclick = () => playVideo(index);
@@ -119,9 +149,8 @@ function renderResults() {
   });
 }
 
-
-// ---------- EMPTY STATE ----------
 function showEmpty(msg) {
   playerContainer.innerHTML = `<p>${msg}</p>`;
   results.innerHTML = "";
 }
+
