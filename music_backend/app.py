@@ -56,7 +56,7 @@ def stream():
     url = f"https://www.youtube.com/watch?v={vid}"
 
     try:
-        with yt_dlp.YoutubeDL({
+        ydl_opts = {
             "quiet": True,
             "format": "best[ext=mp4]/best",
             "noplaylist": True,
@@ -65,7 +65,9 @@ def stream():
             "http_headers": {
                 "User-Agent": "Mozilla/5.0"
             }
-        }) as ydl:
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
         return jsonify({
@@ -73,3 +75,8 @@ def stream():
             "title": info.get("title"),
             "thumb": info.get("thumbnail")
         })
+
+    except Exception as e:
+        print("STREAM ERROR:", e)
+        return jsonify({"error": str(e)}), 500
+
