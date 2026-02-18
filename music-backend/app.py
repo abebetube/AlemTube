@@ -59,7 +59,7 @@ def stream():
         with yt_dlp.YoutubeDL({
             "quiet": True,
             "format": "best[ext=mp4]/best",
-            "noplaylist": True
+            "noplaylist": True,
             "nocheckcertificate": True,
     "geo_bypass": True,
     "http_headers": {
@@ -81,4 +81,5 @@ def stream():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
