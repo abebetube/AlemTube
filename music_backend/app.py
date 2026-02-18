@@ -25,7 +25,7 @@ def search():
             "extract_flat": True,
             "skip_download": True
         }) as ydl:
-            info = ydl.extract_info("ytsearch10:{}".format(query), download=False)
+            info = ydl.extract_info(f"ytsearch10:{query}", download=False)
 
         results = []
         for e in info.get("entries", []):
@@ -53,21 +53,19 @@ def stream():
     if not vid:
         return jsonify({"error": "missing id"}), 400
 
-    url = "https://www.youtube.com/watch?v={}".format(vid)
+    url = f"https://www.youtube.com/watch?v={vid}"
 
     try:
-        wwith yt_dlp.YoutubeDL({
-    "quiet": True,
-    "format": "best[ext=mp4]/best",
-    "noplaylist": True,
-    "nocheckcertificate": True,
-    "geo_bypass": True,
-    "http_headers": {
-        "User-Agent": "Mozilla/5.0"
-    }
-}) as ydl:
-
-
+        with yt_dlp.YoutubeDL({
+            "quiet": True,
+            "format": "best[ext=mp4]/best",
+            "noplaylist": True,
+            "nocheckcertificate": True,
+            "geo_bypass": True,
+            "http_headers": {
+                "User-Agent": "Mozilla/5.0"
+            }
+        }) as ydl:
             info = ydl.extract_info(url, download=False)
 
         return jsonify({
@@ -75,14 +73,3 @@ def stream():
             "title": info.get("title"),
             "thumb": info.get("thumbnail")
         })
-
-    except Exception as e:
-        print("STREAM ERROR:", e)
-        return jsonify({"error": str(e)}), 500
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
-
-
-
