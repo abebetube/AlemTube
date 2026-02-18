@@ -62,6 +62,7 @@ def stream():
             "noplaylist": True,
             "geo_bypass": True,
             "nocheckcertificate": True,
+            'cookiefile': 'cookies.txt',
             "extractor_args": {
                 "youtube": {
                     "player_client": ["android"]
@@ -84,6 +85,7 @@ def stream():
     except Exception as e:
         print("STREAM ERROR:", e)
         return jsonify({"error": str(e)}), 500
+
 
 
 
