@@ -58,10 +58,15 @@ def stream():
     try:
         ydl_opts = {
             "quiet": True,
-            "format": "best[ext=mp4]/best",
+            "format": "best",
             "noplaylist": True,
-            "nocheckcertificate": True,
             "geo_bypass": True,
+            "nocheckcertificate": True,
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["android"]
+                }
+            },
             "http_headers": {
                 "User-Agent": "Mozilla/5.0"
             }
@@ -79,4 +84,6 @@ def stream():
     except Exception as e:
         print("STREAM ERROR:", e)
         return jsonify({"error": str(e)}), 500
+
+
 
