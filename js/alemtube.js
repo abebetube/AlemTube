@@ -93,7 +93,7 @@ async function searchVideos() {
 }
 
 // ---------------- PLAY VIDEO ----------------
-const BASE_URL = "https://alemtube-backend.onrender.com";
+
 
 async function playVideo(videoId) {
 
