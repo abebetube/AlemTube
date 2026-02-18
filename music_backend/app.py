@@ -1,91 +1,42 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import yt_dlp
 
 app = Flask(__name__)
 CORS(app)
 
-
 @app.route("/")
 def home():
-    return "AlemTube backend OK"
+    return "AlemTube backend working ✅"
 
 
-# ---------- SEARCH ----------
-@app.route("/search")
-def search():
-    query = request.args.get("q")
-
-    if not query:
-        return jsonify({"error": "missing query"}), 400
-
-    try:
-        with yt_dlp.YoutubeDL({
-            "quiet": True,
-            "extract_flat": True,
-            "skip_download": True
-        }) as ydl:
-            info = ydl.extract_info(f"ytsearch10:{query}", download=False)
-
-        results = []
-        for e in info.get("entries", []):
-            if not e.get("id"):
-                continue
-
-            results.append({
-                "videoId": e.get("id"),
-                "title": e.get("title"),
-                "thumb": e.get("thumbnail")
-            })
-
-        return jsonify({"results": results})
-
-    except Exception as e:
-        print("SEARCH ERROR:", e)
-        return jsonify({"error": str(e)}), 500
-
-
-# ---------- STREAM ----------
-@app.route("/stream")
-def stream():
-    vid = request.args.get("id")
-
-    if not vid:
+@app.route("/info")
+def info():
+    video_id = request.args.get("id")
+    if not video_id:
         return jsonify({"error": "missing id"}), 400
 
-    url = f"https://www.youtube.com/watch?v={vid}"
+    url = f"https://www.youtube.com/watch?v={video_id}"
+
+    ydl_opts = {
+        "quiet": True,
+        "skip_download": True,
+    }
 
     try:
-        ydl_opts = {
-            "quiet": True,
-            "format": "best",
-            "noplaylist": True,
-            "geo_bypass": True,
-            "nocheckcertificate": True,
-            'cookiefile': 'cookies.txt',
-            "extractor_args": {
-                "youtube": {
-                    "player_client": ["android"]
-                }
-            },
-            "http_headers": {
-                "User-Agent": "Mozilla/5.0"
-            }
-        }
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
         return jsonify({
-            "streamUrl": info.get("url"),
             "title": info.get("title"),
-            "thumb": info.get("thumbnail")
+            "duration": info.get("duration"),
+            "thumbnail": info.get("thumbnail"),
+            "webpage_url": info.get("webpage_url")
         })
 
     except Exception as e:
-        print("STREAM ERROR:", e)
         return jsonify({"error": str(e)}), 500
 
 
-
-
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
