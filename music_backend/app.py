@@ -56,15 +56,17 @@ def stream():
     url = "https://www.youtube.com/watch?v={}".format(vid)
 
     try:
-        with yt_dlp.YoutubeDL({
-            "quiet": True,
-            "format": "best[ext=mp4]/best",
-            "noplaylist": True,
-            "nocheckcertificate": True,
+        wwith yt_dlp.YoutubeDL({
+    "quiet": True,
+    "format": "best[ext=mp4]/best",
+    "noplaylist": True,
+    "nocheckcertificate": True,
     "geo_bypass": True,
     "http_headers": {
         "User-Agent": "Mozilla/5.0"
-        }) as ydl:
+    }
+}) as ydl:
+
 
             info = ydl.extract_info(url, download=False)
 
@@ -81,5 +83,6 @@ def stream():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
 
