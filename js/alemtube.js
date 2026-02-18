@@ -72,7 +72,7 @@ async function searchVideos() {
 
   try {
     const res = await fetch(
-      `https://alemtube-backend.onrender.com/search?q=${encodeURIComponent(query)}`
+      `https://alemtube-8nwl.onrender.com/search?q=${encodeURIComponent(query)}`
     );
 
     if (!res.ok) throw new Error(res.status);
