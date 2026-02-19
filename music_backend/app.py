@@ -10,6 +10,7 @@ def home():
     return "AlemTube backend working ✅"
 
 
+
 @app.route("/info")
 def info():
     video_id = request.args.get("id")
@@ -21,6 +22,7 @@ def info():
     ydl_opts = {
         "quiet": True,
         "skip_download": True,
+        "noplaylist": True,
     }
 
     try:
@@ -36,7 +38,45 @@ def info():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@app.route("/search")
+def search():
+    query = request.args.get("q")
+
+    if not query:
+        return jsonify({"error": "missing query"}), 400
+
+    try:
+        with yt_dlp.YoutubeDL({
+            "quiet": True,
+            "extract_flat": True,
+            "skip_download": True,
+            "http_headers": {
+        "User-Agent": "Mozilla/5.0"
+        }) as ydl:
+
+            info = ydl.extract_info(
+                f"ytsearch10:{query}",
+                download=False
+            )
+
+        results = []
+        for e in info.get("entries", []):
+            if not e.get("id"):
+                continue
+
+            results.append({
+                "videoId": e.get("id"),
+                "title": e.get("title"),
+                "thumb": e.get("thumbnail")
+            })
+
+        return jsonify({"results": results})
+
+    except Exception as e:
+        print("SEARCH ERROR:", e)
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
