@@ -10,7 +10,6 @@ def home():
     return "AlemTube backend working ✅"
 
 
-
 @app.route("/info")
 def info():
     video_id = request.args.get("id")
@@ -38,6 +37,8 @@ def info():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 @app.route("/search")
 def search():
     query = request.args.get("q")
@@ -51,7 +52,8 @@ def search():
             "extract_flat": True,
             "skip_download": True,
             "http_headers": {
-        "User-Agent": "Mozilla/5.0"
+                "User-Agent": "Mozilla/5.0"
+            }
         }) as ydl:
 
             info = ydl.extract_info(
@@ -79,4 +81,3 @@ def search():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
-
