@@ -90,15 +90,26 @@ def stream():
     try:
         ydl_opts = {
             "quiet": True,
-            "format": "bestaudio/best",
             "skip_download": True,
-            "noplaylist": True
+            "noplaylist": True,
+            "format": "bestaudio/best",
+            "http_headers": {
+                "User-Agent": "Mozilla/5.0"
+            }
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
-        stream_url = info["url"]
+        # נבחר URL נכון
+        stream_url = None
+        if "url" in info:
+            stream_url = info["url"]
+        elif "formats" in info and len(info["formats"]) > 0:
+            stream_url = info["formats"][-1]["url"]  # בחר את הפורמט האחרון (בדרך כלל הכי טוב)
+
+        if not stream_url:
+            return jsonify({"error": "Cannot get stream URL"}), 500
 
         return jsonify({
             "streamUrl": stream_url,
@@ -109,6 +120,8 @@ def stream():
         print("STREAM ERROR:", e)
         return jsonify({"error": str(e)}), 500
 
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
