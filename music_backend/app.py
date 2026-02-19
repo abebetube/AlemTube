@@ -78,6 +78,37 @@ def search():
         print("SEARCH ERROR:", e)
         return jsonify({"error": str(e)}), 500
 
+@app.route("/stream")
+def stream():
+    video_id = request.args.get("id")
+
+    if not video_id:
+        return jsonify({"error": "missing id"}), 400
+
+    url = f"https://www.youtube.com/watch?v={video_id}"
+
+    try:
+        ydl_opts = {
+            "quiet": True,
+            "format": "bestaudio/best",
+            "skip_download": True,
+            "noplaylist": True
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+
+        stream_url = info["url"]
+
+        return jsonify({
+            "streamUrl": stream_url,
+            "title": info.get("title")
+        })
+
+    except Exception as e:
+        print("STREAM ERROR:", e)
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
